@@ -1,11 +1,26 @@
 import { useState, useEffect } from "react"
+import cardImage from "./cardImage";
+
+// The URL for the classic Pokemon card back
+const POKEMON_CARD_BACK_URL = "https://upload.wikimedia.org/wikipedia/en/3/3b/Pokemon_Trading_Card_Game_cardback.jpg";
 
 export default function App() {
   const [cards, setCards] = useState([])
+  const [choiceOne, setChoiceOne] = useState(null)
+  const [choiceTwo, setChoiceTwo] = useState(null)
 
   const shuffle = () => {
     const newDeck = getShuffledCards(cardImage)
     setCards(newDeck)
+    setChoiceOne(null)
+    setChoiceTwo(null)
+  }
+
+  const handleChoice = (card) => {
+    // Prevent clicking the same card twice or clicking a flipped card
+    if(card.id === choiceOne?.id || card.matched) return;
+
+    choiceOne ? setChoiceTwo(card) : setChoiceOne(card)
   }
 
   useEffect(() => {
@@ -26,20 +41,35 @@ export default function App() {
         New Game
       </button>
 
-      {/* Grid: Increased gap for bigger cards */}
       <div className="grid grid-cols-4 gap-4 md:gap-8 lg:gap-10">
-        {cards.map((card) => (
-          <div 
-            key={card.id} 
-            // UPDATED SIZES:
-            // Mobile: w-20 (No change, keeps it safe for small phones)
-            // Tablet (md): w-40 (Was 32)
-            // Desktop (lg): w-56 (Was 40) - These are now HUGE on desktop
-            className="w-20 h-20 md:w-40 md:h-40 lg:w-56 lg:h-56 bg-slate-800 border-2 border-slate-700 rounded-xl flex items-center justify-center text-3xl md:text-6xl lg:text-7xl font-bold text-blue-300 shadow-xl cursor-pointer hover:border-blue-400 hover:shadow-blue-500/20 hover:-translate-y-2 transition-all duration-300"
-          >
-            {card.src.toUpperCase()}
-          </div>
-        ))}
+        {cards.map((card) => {
+          // 1. THE FLIP LOGIC: Should this card be shown?
+          const flipped = card === choiceOne || card === choiceTwo || card.matched;
+
+          return (
+            <div 
+              key={card.id} 
+              onClick={() => handleChoice(card)}
+              // Added 'overflow-hidden' and relative positioning for image handling
+              className={`relative overflow-hidden w-20 h-20 md:w-40 md:h-40 lg:w-56 lg:h-56 rounded-xl shadow-xl cursor-pointer transition-all duration-300 border-2 ${flipped ? 'border-blue-400 bg-white' : 'border-slate-700 bg-slate-800 hover:border-blue-400 hover:-translate-y-2 hover:shadow-blue-500/20'}`}
+            >
+              {/* 2. CONDITIONAL RENDERING (Ternary Operator) */}
+              {flipped ? (
+                 // SHOW FRONT (The Content)
+                 <div className="w-full h-full flex items-center justify-center text-3xl md:text-6xl lg:text-7xl font-bold text-blue-600 animate-fadeIn">
+                    {card.src}
+                 </div>
+              ) : (
+                 // SHOW BACK (The Image)
+                 <img 
+                   src={POKEMON_CARD_BACK_URL} 
+                   alt="card back"
+                   className="w-full h-full object-cover animate-fadeIn"
+                 />
+              )}
+            </div>
+          )
+        })}
       </div>
     </div>
   )
@@ -47,14 +77,8 @@ export default function App() {
 
 // --- DATA & LOGIC ---
 
-const cardImage = [
-  { src: "a", matched: false },
-  { src: "b", matched: false },
-  { src: "c", matched: false },
-  { src: "d", matched: false },
-  { src: "e", matched: false },
-  { src: "f", matched: false },
-]
+// Using numbers 1-6 for easier testing
+
 
 function getShuffledCards(data) {
   return [...data, ...data]
