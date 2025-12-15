@@ -1,10 +1,15 @@
-const cardImage = [
-  { src: 1, matched: false },
-  { src: 2, matched: false },
-  { src: 3, matched: false },
-  { src: 4, matched: false },
-  { src: 5, matched: false },
-  { src: 6, matched: false },
-]
+// 1. Choose your 6 favorite Pokemon IDs
+// 25: Pikachu, 6: Charizard, 94: Gengar, 150: Mewtwo, 133: Eevee, 1: Bulbasaur
+const pokeIds = [25, 6, 94, 150, 133, 1];
 
-export default cardImage
+// 2. Map them to create the card objects
+const cardImage = pokeIds.map(id => {
+  return {
+    // We use the "Official Artwork" because it looks high quality
+    src: `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${id}.png`,
+    matched: false,
+    name: `Pokemon ${id}` // Helpful for debugging
+  }
+});
+
+export default cardImage;

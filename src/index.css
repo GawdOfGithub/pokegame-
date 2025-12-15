@@ -1,3 +1,27 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* 1. Moving Gradient Animation */
+@keyframes gradient-xy {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+}
+.animate-gradient-xy {
+    background-size: 400% 400%; /* Important for the movement */
+    animation: gradient-xy 15s ease infinite;
+}
+
+/* 2. Floating Particles Animation */
+@keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-20px); }
+}
+.animate-float {
+    animation: float 6s ease-in-out infinite;
+}
+/* Delay for second particle so they don't move together */
+.animate-float-delayed {
+    animation: float 8s ease-in-out infinite;
+    animation-delay: 2s;
+}

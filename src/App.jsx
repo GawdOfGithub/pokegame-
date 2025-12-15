@@ -1,87 +1,59 @@
-import { useState, useEffect } from "react"
-import cardImage from "./cardImage";
-
-// The URL for the classic Pokemon card back
-const POKEMON_CARD_BACK_URL = "https://upload.wikimedia.org/wikipedia/en/3/3b/Pokemon_Trading_Card_Game_cardback.jpg";
+import SingleCard from "./SingleCard";
+import BackgroundMusic from "./BackgroundMusic"; // <--- Import the new component
+import { useGameLogic } from "./hooks/useGameLogic"; 
 
 export default function App() {
-  const [cards, setCards] = useState([])
-  const [choiceOne, setChoiceOne] = useState(null)
-  const [choiceTwo, setChoiceTwo] = useState(null)
-
-  const shuffle = () => {
-    const newDeck = getShuffledCards(cardImage)
-    setCards(newDeck)
-    setChoiceOne(null)
-    setChoiceTwo(null)
-  }
-
-  const handleChoice = (card) => {
-    // Prevent clicking the same card twice or clicking a flipped card
-    if(card.id === choiceOne?.id || card.matched) return;
-
-    choiceOne ? setChoiceTwo(card) : setChoiceOne(card)
-  }
-
-  useEffect(() => {
-    shuffle()
-  }, [])
+  const { cards, turns, shuffle, handleChoice, choiceOne, choiceTwo } = useGameLogic()
+  
+  // No more audio state or refs here!
 
   return (
-    <div className="min-h-screen w-full bg-slate-900 flex flex-col items-center justify-center p-4 font-sans">
+    <div className="min-h-screen w-full bg-gradient-to-br from-red-900 via-red-600 to-purple-900 animate-gradient-xy flex flex-col items-center justify-center p-4 font-sans select-none relative overflow-hidden text-white">
       
-      <h1 className="text-4xl md:text-6xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-500 mb-8 tracking-wide drop-shadow-lg text-center">
-        PokéGame
-      </h1>
+      {/* --- DROP IN THE MUSIC WIDGET HERE --- */}
+      <BackgroundMusic />
 
-      <button 
-        onClick={shuffle} 
-        className="px-8 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold rounded-full shadow-lg hover:shadow-blue-500/50 hover:scale-105 transition-all duration-300 mb-10 border border-blue-400/30"
-      >
-        New Game
-      </button>
+      {/* Floating Particles */}
+      <div className="absolute top-20 left-20 w-32 h-32 bg-white/5 rounded-full blur-3xl animate-float pointer-events-none"></div>
+      <div className="absolute bottom-20 right-20 w-48 h-48 bg-yellow-500/10 rounded-full blur-3xl animate-float-delayed pointer-events-none"></div>
 
-      <div className="grid grid-cols-4 gap-4 md:gap-8 lg:gap-10">
-        {cards.map((card) => {
-          // 1. THE FLIP LOGIC: Should this card be shown?
-          const flipped = card === choiceOne || card === choiceTwo || card.matched;
+      {/* Header */}
+      <div className="flex flex-col items-center gap-6 mb-8 z-10 relative">
+        <h1 className="text-5xl md:text-7xl font-black italic tracking-tighter drop-shadow-2xl transform -skew-x-6">
+          <span className="text-transparent bg-clip-text bg-gradient-to-b from-yellow-300 to-yellow-500 filter drop-shadow-[0_2px_0_rgba(0,0,0,0.5)]">
+            POKÉ
+          </span>
+          <span className="text-white drop-shadow-[0_2px_0_rgba(0,0,0,0.5)]">MATCH</span>
+        </h1>
 
-          return (
-            <div 
-              key={card.id} 
-              onClick={() => handleChoice(card)}
-              // Added 'overflow-hidden' and relative positioning for image handling
-              className={`relative overflow-hidden w-20 h-20 md:w-40 md:h-40 lg:w-56 lg:h-56 rounded-xl shadow-xl cursor-pointer transition-all duration-300 border-2 ${flipped ? 'border-blue-400 bg-white' : 'border-slate-700 bg-slate-800 hover:border-blue-400 hover:-translate-y-2 hover:shadow-blue-500/20'}`}
+        <div className="flex items-center gap-6">
+            <button 
+                onClick={shuffle} 
+                className="px-8 py-3 bg-slate-900/80 hover:bg-slate-800 text-yellow-400 font-bold rounded-full border border-yellow-500/50 hover:border-yellow-400 transition-all shadow-[0_0_15px_rgba(234,179,8,0.2)] hover:shadow-[0_0_25px_rgba(234,179,8,0.4)] backdrop-blur-sm"
             >
-              {/* 2. CONDITIONAL RENDERING (Ternary Operator) */}
-              {flipped ? (
-                 // SHOW FRONT (The Content)
-                 <div className="w-full h-full flex items-center justify-center text-3xl md:text-6xl lg:text-7xl font-bold text-blue-600 animate-fadeIn">
-                    {card.src}
-                 </div>
-              ) : (
-                 // SHOW BACK (The Image)
-                 <img 
-                   src={POKEMON_CARD_BACK_URL} 
-                   alt="card back"
-                   className="w-full h-full object-cover animate-fadeIn"
-                 />
-              )}
+                NEW GAME
+            </button>
+
+            <div className="px-6 py-3 rounded-full bg-black/40 border border-white/10 backdrop-blur-md">
+                <span className="text-slate-400 text-xs font-bold uppercase tracking-wider mr-3">Turns</span>
+                <span className="text-2xl font-mono font-bold">{turns}</span>
             </div>
-          )
-        })}
+        </div>
+      </div>
+
+      {/* Grid */}
+      <div className="relative p-6 md:p-8 rounded-3xl bg-black/20 backdrop-blur-sm border border-white/5 shadow-2xl z-10">
+        <div className="grid grid-cols-4 gap-4 md:gap-8">
+            {cards.map((card) => (
+            <SingleCard 
+                key={card.id} 
+                card={card}
+                handleChoice={handleChoice}
+                flipped={card === choiceOne || card === choiceTwo || card.matched}
+            />
+            ))}
+        </div>
       </div>
     </div>
   )
-}
-
-// --- DATA & LOGIC ---
-
-// Using numbers 1-6 for easier testing
-
-
-function getShuffledCards(data) {
-  return [...data, ...data]
-    .sort(() => Math.random() - 0.5)
-    .map((item) => ({ ...item, id: Math.random() }))
 }
